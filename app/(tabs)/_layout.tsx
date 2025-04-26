@@ -34,10 +34,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="detail"
+        options={{
+           tabBarItemStyle: { display: "none"},
+          }}
+      />
+      /<Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarItemStyle:{display:"none"},
         }}
       />
     </Tabs>
