@@ -1,74 +1,110 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+type Anime = {
+  mal_id: number;
+  title: string;
+  images: {
+    jpg: {
+      image_url: string;
+    };
+  };
+};
 
 export default function HomeScreen() {
+  const [query, setQuery] = useState('');
+  const [animeList, setAnimeList] = useState<Anime[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch('https://api.jikan.moe/v4/anime?q=kids&sfw=true');
+      const json = await res.json();
+      setAnimeList(json.data);
+    };
+    fetchData();
+  }, []);
+
+  const fetchAnime = async () => {
+    if (query.trim() === '') return;
+    try {
+      const res = await fetch('https://api.jikan.moe/v4/anime?q=${query}&sfw=true');
+      const data = await res.json();
+      setAnimeList(data.data);
+    } catch (error) {
+      console.error('Gagal ambil data:', error);
+    }
+  };
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Kids Anime</Text>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <TextInput
+          placeholder="Cari Anime..."
+          value={query}
+          onChangeText={setQuery}
+          style={styles.input}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <TouchableOpacity onPress={fetchAnime} style={styles.searchButton}>
+          <Feather name="search" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      <FlatList
+        data={animeList}
+        keyExtractor={(item) => item.mal_id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Image source={{ uri: item.images.jpg.image_url }} style={styles.image} />
+            <Text style={styles.title}>{item.title}</Text>
+          </View>
+        )}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: { flex: 1, backgroundColor: '#fce4ec', paddingTop: 40, paddingHorizontal: 12 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#f06292',
+    padding: 16,
+    borderRadius: 10,
+  },
+  headerText: { fontSize: 24, color: '#fff', fontWeight: 'bold' },
+  searchContainer: {
+    flexDirection: 'row',
+    marginVertical: 16,
+    alignItems: 'center',
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    fontSize: 16,
+  },
+  searchButton: {
+    backgroundColor: '#f06292',
+    marginLeft: 8,
+    padding: 10,
+    borderRadius: 8,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  image: { width: 60, height: 90, borderRadius: 6, marginRight: 12 },
+  title: { fontSize: 16, fontWeight: 'bold', flexShrink: 1 },
 });
