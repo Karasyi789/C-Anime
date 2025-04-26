@@ -12,7 +12,7 @@ export default function DetailScreen() {
   useEffect(() => {
     const fetchAnimeDetail = async () => {
       try {
-        const res = await fetch('https://api.jikan.moe/v4/anime/${animeId}');
+        const res = await fetch(`https://api.jikan.moe/v4/anime/${animeId}`);
         const json = await res.json();
         setAnime(json.data);
         setLoading(false);
