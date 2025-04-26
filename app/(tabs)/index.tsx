@@ -86,6 +86,11 @@ const fetchAnime = async () => {
           </TouchableOpacity>
         )}
       />
+      {!loading && animeList.length === 0 && (
+      <Text style={{ textAlign: 'center', marginTop: 20, fontSize: 16, color: '#555' }}>
+        Anime tidak ditemukan.
+      </Text>
+      )}
     </View>
   );
 }
@@ -121,13 +126,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  padding: 10,
+  marginBottom: 12,
+  flexDirection: 'row',
+  alignItems: 'center',
+  overflow: 'hidden', // Tambahan supaya gambar lebih rapi
+},
+
   image: { width: 60, height: 90, borderRadius: 6, marginRight: 12 },
   title: { fontSize: 16, fontWeight: 'bold', flexShrink: 1 },
 });
