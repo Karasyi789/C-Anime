@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router'; 
 
@@ -17,30 +17,41 @@ export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [animeList, setAnimeList] = useState<Anime[]>([]);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch('https://api.jikan.moe/v4/anime?q=kids&sfw=true');
-      const json = await res.json();
-      setAnimeList(json.data);
-    };
-    fetchData();
-  }, []);
-
-  const fetchAnime = async () => {
-    if (query.trim() === '') return;
-    try {
-      const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&sfw=true`); // Perbaikan di sini
-      const data = await res.json();
-      if (data && data.data) { // Memeriksa apakah data valid
-        setAnimeList(data.data);
-      } else {
-        console.error('Data tidak valid:', data);
+      setLoading(true);
+      try {
+        const res = await fetch('https://api.jikan.moe/v4/anime?q=kids&sfw=true');
+        const json = await res.json();
+        setAnimeList(json.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+       setLoading(false);
       }
-    } catch (error) {
-      console.error('Gagal ambil data:', error);
+    };
+  })
+
+const fetchAnime = async () => {
+  if (query.trim() === '') return;
+  setLoading(true);
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&sfw=true`);
+    const data = await res.json();
+    if (data && data.data) {
+      setAnimeList(data.data);
+    } else {
+      console.error('Data tidak valid:', data);
     }
-  };
+  } catch (error) {
+    console.error('Gagal ambil data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -59,6 +70,8 @@ export default function HomeScreen() {
           <Feather name="search" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+      {loading && <ActivityIndicator size="large" color="#f06292" style={{ marginVertical: 20 }} />}
+
 
       <FlatList
         data={animeList}
