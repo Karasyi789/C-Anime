@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
+import { useRouter } from 'expo-router'; 
 
 type Anime = {
   mal_id: number;
@@ -15,6 +16,7 @@ type Anime = {
 export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [animeList, setAnimeList] = useState<Anime[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,13 +30,18 @@ export default function HomeScreen() {
   const fetchAnime = async () => {
     if (query.trim() === '') return;
     try {
-      const res = await fetch('https://api.jikan.moe/v4/anime?q=${query}&sfw=true');
+      const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&sfw=true`); // Perbaikan di sini
       const data = await res.json();
-      setAnimeList(data.data);
+      if (data && data.data) { // Memeriksa apakah data valid
+        setAnimeList(data.data);
+      } else {
+        console.error('Data tidak valid:', data);
+      }
     } catch (error) {
       console.error('Gagal ambil data:', error);
     }
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -57,10 +64,13 @@ export default function HomeScreen() {
         data={animeList}
         keyExtractor={(item) => item.mal_id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity
+            onPress={() => router.push({ pathname: '/detail', params: { animeld: item.mal_id } } as any)}
+            style={styles.card}
+          >
             <Image source={{ uri: item.images.jpg.image_url }} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
-          </View>
+          </TouchableOpacity>
         )}
       />
     </View>
@@ -106,5 +116,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: { width: 60, height: 90, borderRadius: 6, marginRight: 12 },
-  title: { fontSize: 16, fontWeight: 'bold', flexShrink: 1 },
+  title: { fontSize: 16, fontWeight: 'bold', flexShrink: 1 },
 });
