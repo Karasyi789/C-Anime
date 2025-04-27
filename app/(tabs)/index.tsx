@@ -8,13 +8,14 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   ActivityIndicator, 
-  Animated 
+  Animated,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router'; 
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Anime = {
+export type Anime = {
   mal_id: number;
   title: string;
   images: {

@@ -39,7 +39,7 @@ export default function TabLayout() {
            tabBarItemStyle: { display: "none"},
           }}
       />
-      /<Tabs.Screen
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
