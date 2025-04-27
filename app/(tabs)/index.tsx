@@ -7,10 +7,12 @@ import {
   Image, 
   TouchableOpacity, 
   StyleSheet, 
-  ActivityIndicator 
+  ActivityIndicator, 
+  Animated 
 } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router'; 
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Anime = {
   mal_id: number;
@@ -25,49 +27,85 @@ type Anime = {
 export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [animeList, setAnimeList] = useState<Anime[]>([]);
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [favorites, setFavorites] = useState<Anime[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [heartScales, setHeartScales] = useState<{ [key: number]: Animated.Value }>({}); // Animasi per item
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('https://api.jikan.moe/v4/anime?q=kids&sfw=true');
-        const json = await res.json();
-        setAnimeList(json.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+    fetchDefaultAnime();
+    loadFavorites();
+  }, []);
+
+  const loadFavorites = async () => {
+      const storedFavorites = await AsyncStorage.getItem('favorites');
+      if (storedFavorites) {
+        setFavorites(JSON.parse(storedFavorites));
       }
     };
 
-    fetchData();
-  }, []);
-
   const fetchAnime = async () => {
-    if (query.trim() === '') return;
-    setLoading(true);
-    try {
-      const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&sfw=true`);
-      const data = await res.json();
-      if (data && data.data) {
-        setAnimeList(data.data);
-      } else {
-        console.error('Data tidak valid:', data);
-      }
-    } catch (error) {
-      console.error('Gagal ambil data:', error);
-    } finally {
-      setLoading(false);
+  if (query.trim() === '') {
+    await fetchDefaultAnime();
+    return;
+  }
+  setLoading(true);
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime?q=${query}&sfw=true`);
+    const data = await res.json();
+    setAnimeList(data.data || []);
+  } catch (error) {
+    console.error('Gagal ambil data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+  const toggleFavorite = async (anime: Anime) => {
+    const isFavorite = favorites.find((fav) => fav.mal_id === anime.mal_id);
+    let newFavorites;
+
+    if (isFavorite) {
+      newFavorites = favorites.filter((fav) => fav.mal_id !== anime.mal_id);
+    } else {
+      newFavorites = [...favorites, anime];
     }
+
+    setFavorites(newFavorites);
+    await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+    // Animasi heart per item
+    const existingHeartScale = heartScales[anime.mal_id] || new Animated.Value(1);
+      setHeartScales(prev => ({
+        ...prev,
+        [anime.mal_id]: existingHeartScale,
+      }));
+    // Animasi heart saat menambahkan ke favorit atau menghapusnya
+      Animated.sequence([
+        Animated.spring(existingHeartScale, {
+          toValue: 1.2, // membesarkan ukuran heart
+          useNativeDriver: true,
+        }),
+        Animated.spring(existingHeartScale, {
+          toValue: 1, // mengembalikan ukuran heart
+          useNativeDriver: true,
+        }),
+      ]).start();
+    
   };
 
-  const addToFavorites = (anime: Anime) => {
-    if (!favorites.find((fav) => fav.mal_id === anime.mal_id)) {
-      setFavorites([...favorites, anime]);
+  const fetchDefaultAnime = async () => {
+    setLoading(true);    
+    try {
+      const res = await fetch('https://api.jikan.moe/v4/anime?q=kids&sfw=true');
+      const json = await res.json();
+      setAnimeList(json.data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -80,11 +118,20 @@ export default function HomeScreen() {
         <TextInput
           placeholder="Cari Anime..."
           value={query}
-          onChangeText={setQuery}
+          onChangeText={(text) => {
+            setQuery(text);
+            if (text.trim() === '') {
+              fetchDefaultAnime();
+            }
+          }}
           style={styles.input}
         />
-        <TouchableOpacity onPress={fetchAnime} style={styles.searchButton}>
-          <Ionicons name="search" size={20} color="#fff" />
+        <TouchableOpacity 
+          onPress={fetchAnime} 
+          style={[styles.searchButton, { opacity: query.trim() ? 1 : 0.5 }]}
+          disabled={!query.trim()}
+        >
+        <Ionicons name="search" size={20} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setShowFavorites(!showFavorites)}
@@ -116,12 +163,14 @@ export default function HomeScreen() {
               <Image source={{ uri: item.images.jpg.image_url }} style={styles.image} />
               <Text style={styles.title}>{item.title}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => addToFavorites(item)}>
-              <Ionicons
-                name={favorites.find((fav) => fav.mal_id === item.mal_id) ? 'heart' : 'heart-outline'}
-                size={24}
-                color={favorites.find((fav) => fav.mal_id === item.mal_id) ? '#f06292' : '#ccc'}
-              />
+            <TouchableOpacity onPress={() => toggleFavorite(item)}>
+              <Animated.View style={{ transform: [{ scale: heartScales[item.mal_id] || 1 }] }}>
+                <Ionicons
+                  name={favorites.find((fav) => fav.mal_id === item.mal_id) ? 'heart' : 'heart-outline'}
+                  size={24}
+                  color={favorites.find((fav) => fav.mal_id === item.mal_id) ? '#f06292' : '#ccc'}
+                />
+              </Animated.View>
             </TouchableOpacity>
           </View>
         )}
@@ -131,7 +180,12 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fce4ec', paddingTop: 40, paddingHorizontal: 12 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fce4ec', 
+    paddingTop: 40, 
+    paddingHorizontal: 12 
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -140,7 +194,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 10,
   },
-  headerText: { fontSize: 24, color: '#fff', fontWeight: 'bold' },
+  headerText: { 
+    fontSize: 24, 
+    color: '#fff', 
+    fontWeight: 'bold' 
+  },
   searchContainer: {
     flexDirection: 'row',
     marginVertical: 16,
@@ -187,6 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: 8,
   },
   favoritesButtonText: {
     color: '#f06292',
@@ -194,3 +253,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+
