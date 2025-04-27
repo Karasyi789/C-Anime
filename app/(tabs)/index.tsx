@@ -9,7 +9,6 @@ import {
   StyleSheet, 
   ActivityIndicator, 
   Animated,
-  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router'; 
 import { Ionicons } from '@expo/vector-icons';
@@ -33,6 +32,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [heartScales, setHeartScales] = useState<{ [key: number]: Animated.Value }>({}); // Animasi per item
   const router = useRouter();
+  
 
   useEffect(() => {
     fetchDefaultAnime();
@@ -109,11 +109,10 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Kids Anime</Text>
+        <Text style={styles.headerText}> Wecome to Kids Anime</Text>
       </View>
       <View style={styles.searchContainer}>
         <TextInput

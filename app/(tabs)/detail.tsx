@@ -64,10 +64,6 @@ export default function DetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Tombol kembali */}
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <Text style={styles.backText}>← Kembali</Text>
-      </TouchableOpacity>
       {/* Gambar */}
       <Image source={{ uri: anime.images.jpg.image_url }} style={styles.image} />
       {/* Judul dan info */}
@@ -145,11 +141,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     marginLeft: 6,
-  },
-  backText: {
-    color: '#f06292',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
   backButton: {
     backgroundColor: '#fff',
