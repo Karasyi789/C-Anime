@@ -23,22 +23,22 @@ export type Anime = {
     };
   };
 };
-
-export default function HomeScreen() {
+export  default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [animeList, setAnimeList] = useState<Anime[]>([]);
   const [favorites, setFavorites] = useState<Anime[]>([]);
   const [showFavorites, setShowFavorites] = useState(false);
   const [loading, setLoading] = useState(false);
   const [heartScales, setHeartScales] = useState<{ [key: number]: Animated.Value }>({}); // Animasi per item
+  const [showSplash, setShowSplash] = useState(true);
   const router = useRouter();
   
-
   useEffect(() => {
     fetchDefaultAnime();
     loadFavorites();
-  }, []);
-
+  }, 
+  []);
+  
   const loadFavorites = async () => {
       const storedFavorites = await AsyncStorage.getItem('favorites');
       if (storedFavorites) {
@@ -109,10 +109,31 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
-  return (
+   
+  if (showSplash) {
+    return (
+      <View style={styles.container1}>
+        <Image
+          source={require('../../assets/splash/logo.png')}
+          style={styles.image1}
+          resizeMode="contain"
+        />
+        <Text style={styles.title1}>Kids Anime</Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setShowSplash(false)} // Tekan tombol, hilangin splash
+        >
+          <Text style={styles.buttonText}>Get Started</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+    return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}> Wecome to Kids Anime</Text>
+        <Text style={styles.headerText}>
+          {showFavorites ?'Favorites':'Kids Anime'}</Text>
       </View>
       <View style={styles.searchContainer}>
         <TextInput
@@ -188,7 +209,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f06292',
     padding: 16,
@@ -251,6 +272,37 @@ const styles = StyleSheet.create({
     color: '#f06292',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+   container1: {
+    flex: 1,
+    backgroundColor: '#FDE2E4', // warna pink soft
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  image1: {
+    height: 200,
+    width: 400,
+    borderRadius: 40, // kalau mau bulat
+    marginBottom: 10,
+  },
+  title1: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FF6B81',
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: '#FF6B81',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    elevation: 3, // efek shadow kecil
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

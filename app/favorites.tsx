@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
@@ -35,6 +36,11 @@ export default function FavoritesScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Favorites</Text>
+      </View>
+
       {favorites.length === 0 ? (
         <Text style={styles.title}>Belum ada anime favorit.</Text>
       ) : (
@@ -57,8 +63,43 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fce4ec', padding: 16 },
-  title: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', marginVertical: 20 },
-  card: { backgroundColor: '#fff', padding: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  image: { width: 60, height: 90, borderRadius: 6, marginRight: 12 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fce4ec',
+    padding: 16,
+  },
+  header: {
+    backgroundColor: '#FF4081', // Warna background header
+    width: '100%',
+    padding: 16,
+    alignItems: 'center',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    color: '#fff', // Warna teks di header
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  card: {
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  image: {
+    width: 60,
+    height: 90,
+    borderRadius: 6,
+    marginRight: 12,
+  },
 });
+
